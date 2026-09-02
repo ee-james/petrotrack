@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PetroTrack</title>
+    <style>
+      /* theme var fallbacks so there's no unstyled flash before App.svelte
+         pulls /config and calls applyTheme(). mirrors config.toml defaults. */
+      :root {
+        --color-background:    #0D0D0D;
+        --color-text-primary:  #CCCCCC;
+        --color-text-secondary:#888888;
+        --color-neon:          #00E5FF;
+        --color-alert:         #FF5252;
+        --color-price-up:      #4AFF8C;
+        --color-price-down:    #2196F3;
+        --animation-duration:    350ms;
+        --glow-intensity:        0.35;
+        --glow-percent:          35%;
+        --alert-pulse-intensity: 0.6;
+        --alert-pulse-percent:   60%;
+        --tile-border-thickness: 2px;
+        --tile-corner-radius:  8px;
+        --tile-padding:        16px;
+        --tile-spacing:        20px;
+        --color-web-accent:    #C8A020;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: var(--color-background);
+        color: var(--color-text-primary);
+        font-family: 'Courier New', Courier, monospace;
+        min-height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+# Secrets
+.env
+
+# Database & runtime data
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+electron/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/

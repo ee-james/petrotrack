@@ -1,0 +1,37 @@
+services:
+  backend:
+    build: .
+    container_name: petrotrack-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - OIL_PRICE_API=${OIL_PRICE_API}
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - petrotrack
+
+  proxy:
+    build: ./proxy
+    container_name: petrotrack-proxy
+    restart: unless-stopped
+    networks:
+      - petrotrack
+
+  frontend:
+    build: ./frontend
+    container_name: petrotrack-frontend
+    ports:
+      - "8010:80"
+    depends_on:
+      - backend
+      - proxy
+    restart: unless-stopped
+    networks:
+      - petrotrack
+
+networks:
+  petrotrack:
+    driver: bridge

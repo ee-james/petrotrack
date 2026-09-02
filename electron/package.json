@@ -1,0 +1,13 @@
+{
+  "name": "petrotrack-desktop",
+  "version": "1.0.0",
+  "description": "PetroTrack desktop client (Electron)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build-frontend": "cd ../frontend && npm install && npm run build"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7"
+  }
+}
