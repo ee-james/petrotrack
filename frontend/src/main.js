@@ -1,3 +1,6 @@
+/**
+ * @file Implementation for main.
+ */
 import 'flag-icons/css/flag-icons.min.css';
 import App from './App.svelte';
 

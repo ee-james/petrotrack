@@ -1,3 +1,5 @@
+## @file Implementation for config loader.
+##
 import toml
 import os
 import threading
@@ -10,6 +12,8 @@ _config_mtime: float | None = None
 _lock = threading.Lock()
 
 
+## @brief Documents load_config.
+##
 def load_config() -> Dict[str, Any]:
     global _config, _config_mtime
 
@@ -26,5 +30,7 @@ def load_config() -> Dict[str, Any]:
     return _config
 
 
+## @brief Documents get_config.
+##
 def get_config() -> Dict[str, Any]:
     return load_config()

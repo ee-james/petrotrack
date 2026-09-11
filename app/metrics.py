@@ -1,8 +1,12 @@
+## @file Implementation for metrics.
+##
 import sqlite3
 from datetime import datetime, timedelta
 from typing import Optional
 
 
+## @brief Documents compute_metrics.
+##
 def compute_metrics(
     conn: sqlite3.Connection,
     code: str,

@@ -1,3 +1,6 @@
+/**
+ * @file Implementation for App.
+ */
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { getConfig, getLastRefresh, putEnabledCommodities } from './lib/api.js';
@@ -34,6 +37,9 @@
     const available   = filtered.filter(c => metricsCache[c] !== null || metricsCache[c] === undefined);
     const unavailable = filtered.filter(c => metricsCache[c] === null);
 
+    /**
+     * @brief Documents sortFn.
+     */
     function sortFn(a, b) {
       if (sortBy === 'none') return 0;
       const ma = metricsCache[a], mb = metricsCache[b];
@@ -52,11 +58,17 @@
     return [...available.sort(sortFn), ...unavailable];
   })();
 
+  /**
+   * @brief Documents setSort.
+   */
   function setSort(col) {
     if (sortBy === col) sortDir = -sortDir;
     else { sortBy = col; sortDir = col === 'alert' ? -1 : 1; }
   }
 
+  /**
+   * @brief Documents onMetrics.
+   */
   function onMetrics(e) {
     const { code, metrics } = e.detail;
     metricsCache = { ...metricsCache, [code]: metrics ?? null };
@@ -104,6 +116,9 @@
   $: maxBrowserW = Math.floor(windowWidth * 0.60);
 
   // Cards toggle - persisted
+  /**
+   * @brief Documents showCards.
+   */
   let showCards = (() => {
     try { return localStorage.getItem('petrotrack:showCards') !== 'false'; } catch { return true; }
   })();
@@ -111,8 +126,14 @@
 
   // Mute state
   let muted = false;
+  /**
+   * @brief Documents handleMuteToggle.
+   */
   function handleMuteToggle() { muted = toggleMute(); }
 
+  /**
+   * @brief Documents toggleFullscreen.
+   */
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
@@ -125,27 +146,45 @@
   let browserPanels = [];   // [{ id, navigateTo }]
   let nextPanelId   = 0;
 
+  /**
+   * @brief Documents browserWidth.
+   */
   let browserWidth = (() => {
     try { return parseInt(localStorage.getItem('petrotrack:browserWidth') ?? '680', 10) || 680; } catch { return 680; }
   })();
   $: try { localStorage.setItem('petrotrack:browserWidth', String(browserWidth)); } catch {}
 
+  /**
+   * @brief Documents addBrowser.
+   */
   function addBrowser() {
     if (browserPanels.length >= 2) return;
     browserPanels = [...browserPanels, { id: nextPanelId++, navigateTo: '' }];
   }
 
+  /**
+   * @brief Documents removeBrowser.
+   */
   function removeBrowser(id) {
     browserPanels = browserPanels.filter(p => p.id !== id);
   }
 
+  /**
+   * @brief Documents startResize.
+   */
   function startResize(e) {
     e.preventDefault();
     const startX = e.clientX;
     const startW = browserWidth;
+    /**
+     * @brief Documents onMove.
+     */
     function onMove(ev) {
       browserWidth = Math.max(300, Math.min(maxBrowserW, startW + (startX - ev.clientX)));
     }
+    /**
+     * @brief Documents onUp.
+     */
     function onUp() {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
@@ -160,6 +199,9 @@
 
   // ---- Config loading ----
 
+  /**
+   * @brief Documents startCooldown.
+   */
   function startCooldown() {
     const ms = (config?.behavior?.manual_refresh_minutes ?? 6) * 60_000;
     cooldownUntil = Date.now() + ms;
@@ -170,6 +212,9 @@
     }, 1000);
   }
 
+  /**
+   * @brief Documents loadConfig.
+   */
   async function loadConfig() {
     try {
       config = await getConfig();
@@ -220,6 +265,9 @@
     try { localStorage.setItem('petrotrack:featured', JSON.stringify(featured)); } catch {}
   }
 
+  /**
+   * @brief Documents scheduleAutoRefresh.
+   */
   async function scheduleAutoRefresh() {
     if (intervalId) { clearInterval(intervalId);  intervalId = null; }
     if (timeoutId)  { clearTimeout(timeoutId);    timeoutId  = null; }
@@ -254,6 +302,9 @@
 
   // ---- Featured-tile selection ----
 
+  /**
+   * @brief Documents selectForFeature.
+   */
   function selectForFeature(code) {
     // Drive the first browser panel to a Wikipedia search for the commodity
     if (browserPanels.length > 0) {
@@ -274,6 +325,9 @@
 
   // ---- Manual refresh ----
 
+  /**
+   * @brief Documents manualRefresh.
+   */
   function manualRefresh() {
     if (manualCooldown) return;
     refreshKey++;
@@ -282,6 +336,9 @@
 
   // ---- Config panel save ----
 
+  /**
+   * @brief Documents handleSaveConfig.
+   */
   async function handleSaveConfig(e) {
     try {
       await putEnabledCommodities(e.detail.enabled);
@@ -294,6 +351,9 @@
     }
   }
 
+  /**
+   * @brief Documents handleSaveTheme.
+   */
   async function handleSaveTheme() {
     configOpen = false;
     await loadConfig();
@@ -305,7 +365,13 @@
     await loadConfig();
     await scheduleAutoRefresh();
 
+    /**
+     * @brief Documents onFsChange.
+     */
     const onFsChange = () => { isFullscreen = !!document.fullscreenElement; };
+    /**
+     * @brief Documents onResize.
+     */
     const onResize   = () => {
       windowWidth  = window.innerWidth;
       windowHeight = window.innerHeight;

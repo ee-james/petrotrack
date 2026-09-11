@@ -1,6 +1,12 @@
+/**
+ * @file Implementation for main.
+ */
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
+/**
+ * @brief Documents createWindow.
+ */
 function createWindow() {
   const win = new BrowserWindow({
     width:           1400,
