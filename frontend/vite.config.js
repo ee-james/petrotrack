@@ -1,3 +1,6 @@
+/**
+ * @file Implementation for vite.config.
+ */
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 

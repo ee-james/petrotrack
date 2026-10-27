@@ -1,3 +1,6 @@
+/**
+ * @file Implementation for preload.
+ */
 const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
 const fs   = require('fs');

@@ -1,3 +1,5 @@
+## @file Implementation for main.
+##
 import asyncio
 import sqlite3
 from datetime import datetime, timedelta
@@ -24,12 +26,16 @@ from app.metrics import compute_metrics
 app = FastAPI()
 client = OilPriceClient()
 
+## @brief Documents _available_commodities.
+##
 def _available_commodities() -> list[str]:
     return get_config()["commodities"]["available"]
 
 
 # ---- DB dependency ----
 
+## @brief Documents get_db.
+##
 def get_db():
     path = get_config()["database"]["path"]
     conn = sqlite3.connect(path, check_same_thread=False)
@@ -42,6 +48,8 @@ def get_db():
 
 # ---- Startup ----
 
+## @brief Documents on_startup.
+##
 @app.on_event("startup")
 def on_startup():
     # db has to exist before the background loops touch it
@@ -49,12 +57,16 @@ def on_startup():
     init_db(config["database"]["path"])
 
 
+## @brief Documents start_background_tasks.
+##
 @app.on_event("startup")
 async def start_background_tasks() -> None:
     asyncio.create_task(_config_reload_loop())
     asyncio.create_task(_scheduled_refresh_loop())
 
 
+## @brief Documents _config_reload_loop.
+##
 async def _config_reload_loop() -> None:
     # config.toml is hot-reloaded, poll its mtime
     while True:
@@ -62,6 +74,8 @@ async def _config_reload_loop() -> None:
         load_config()
 
 
+## @brief Documents _backfill_if_needed.
+##
 async def _backfill_if_needed(conn: sqlite3.Connection, code: str) -> None:
     # grab 30d of history if we have fewer than 2 rows for this code.
     # runs at startup and on every scheduled refresh so a newly added
@@ -91,6 +105,8 @@ async def _backfill_if_needed(conn: sqlite3.Connection, code: str) -> None:
         print(f"backfill: {code} failed - {exc}")
 
 
+## @brief Documents _scheduled_refresh_loop.
+##
 async def _scheduled_refresh_loop() -> None:
     while True:
         await _do_scheduled_refresh()
@@ -105,6 +121,8 @@ _REFRESH_FLOOR_S  = 6 * 3600        # never re-check a count code more than ever
 _REFRESH_CEIL_S   = 30 * 24 * 3600  # ...or less than once a month
 
 
+## @brief Documents _is_count_code.
+##
 def _is_count_code(conn: sqlite3.Connection, code: str) -> bool:
     # count codes (rig counts, permits, ...) carry a COUNT currency instead of a price
     row = conn.execute(
@@ -114,6 +132,8 @@ def _is_count_code(conn: sqlite3.Connection, code: str) -> bool:
     return row is not None and row["currency"] in _COUNT_CURRENCIES
 
 
+## @brief Documents _update_adaptive_schedule.
+##
 def _update_adaptive_schedule(conn: sqlite3.Connection, code: str) -> None:
     # count codes barely move, so space out the polling based on how often
     # this one has actually changed. sets next_check_at.
@@ -146,6 +166,8 @@ def _update_adaptive_schedule(conn: sqlite3.Connection, code: str) -> None:
     print(f"adaptive: {code} next check in {next_s/3600:.1f}h -> {next_check}")
 
 
+## @brief Documents _do_scheduled_refresh.
+##
 async def _do_scheduled_refresh() -> None:
     # backfill anything thin on history, then pull latest prices. price codes
     # always get pulled; count codes only when their next_check_at has come up.
@@ -223,11 +245,15 @@ async def _do_scheduled_refresh() -> None:
 
 # ---- Endpoints ----
 
+## @brief Documents read_config.
+##
 @app.get("/config")
 def read_config():
     return get_config()
 
 
+## @brief Documents read_metrics.
+##
 @app.get("/metrics/{code}")
 def read_metrics(code: str, conn=Depends(get_db)):
     config = get_config()
@@ -242,6 +268,8 @@ def read_metrics(code: str, conn=Depends(get_db)):
     return result
 
 
+## @brief Documents read_prices.
+##
 @app.get("/prices/{code}")
 def read_prices(code: str, conn=Depends(get_db)):
     since = datetime.utcnow() - timedelta(days=30)
@@ -249,6 +277,8 @@ def read_prices(code: str, conn=Depends(get_db)):
     return {"code": code, "prices": rows}
 
 
+## @brief Documents read_settings.
+##
 @app.get("/settings/{code}")
 def read_settings(code: str, conn=Depends(get_db)):
     config = get_config()
@@ -258,10 +288,14 @@ def read_settings(code: str, conn=Depends(get_db)):
     return {"code": code, "alert_threshold": threshold}
 
 
+## @brief Documents SettingsBody.
+##
 class SettingsBody(BaseModel):
     alert_threshold: float
 
 
+## @brief Documents write_settings.
+##
 @app.put("/settings/{code}")
 def write_settings(code: str, body: SettingsBody, conn=Depends(get_db)):
     set_setting(conn, code, "alert_threshold", body.alert_threshold)
@@ -270,11 +304,15 @@ def write_settings(code: str, body: SettingsBody, conn=Depends(get_db)):
 
 # ---- Theme read/write ----
 
+## @brief Documents read_theme.
+##
 @app.get("/config/theme")
 def read_theme():
     return get_config().get("theme", {})
 
 
+## @brief Documents write_theme.
+##
 @app.put("/config/theme")
 def write_theme(body: dict[str, Any] = Body(...)):
     with open(CONFIG_PATH) as f:
@@ -291,11 +329,15 @@ def write_theme(body: dict[str, Any] = Body(...)):
 
 # ---- Commodity catalog + config write-back ----
 
+## @brief Documents list_available_commodities.
+##
 @app.get("/commodities/available")
 def list_available_commodities():
     return {"codes": _available_commodities()}
 
 
+## @brief Documents check_commodities_plan.
+##
 @app.get("/commodities/plan-check")
 async def check_commodities_plan():
     # hit the api for every catalog code and see which ones come back with
@@ -322,6 +364,8 @@ async def check_commodities_plan():
     return {"available": available, "unavailable": unavailable}
 
 
+## @brief Documents fetch_commodities_catalog.
+##
 @app.get("/commodities/catalog")
 async def fetch_commodities_catalog():
     # read-only, doesn't touch config
@@ -329,10 +373,14 @@ async def fetch_commodities_catalog():
     return {"codes": codes}
 
 
+## @brief Documents CommoditiesBody.
+##
 class CommoditiesBody(BaseModel):
     enabled: list[str]
 
 
+## @brief Documents update_enabled_commodities.
+##
 @app.put("/commodities/enabled")
 def update_enabled_commodities(body: CommoditiesBody):
     if not body.enabled:
@@ -354,6 +402,8 @@ def update_enabled_commodities(body: CommoditiesBody):
     return {"enabled": body.enabled}
 
 
+## @brief Documents get_last_refresh.
+##
 @app.get("/last_refresh")
 def get_last_refresh(conn=Depends(get_db)):
     # newest fetched_at across everything we're tracking

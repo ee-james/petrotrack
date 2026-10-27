@@ -1,3 +1,5 @@
+## @file Implementation for app.
+##
 # small html fetch-and-rewrite service so the electron browser panels can show
 # any page without CORS getting in the way.
 #
@@ -114,6 +116,8 @@ HEADERS = {
 }
 
 
+## @brief Documents proxy_url.
+##
 def proxy_url(request: Request, target: str, dark: bool, no_images: bool) -> str:
     # a /fetch url that points target back at us
     params = urlencode({"url": target, "dark": str(dark).lower(), "no_images": str(no_images).lower()})
@@ -122,6 +126,8 @@ def proxy_url(request: Request, target: str, dark: bool, no_images: bool) -> str
 
 # ---- Main endpoint ----
 
+## @brief Documents fetch.
+##
 @app.get("/fetch", response_class=HTMLResponse)
 async def fetch(
     request:   Request,
@@ -211,6 +217,8 @@ async def fetch(
 
 # ---- Health check ----
 
+## @brief Documents health.
+##
 @app.get("/health")
 async def health():
     return {"status": "ok"}

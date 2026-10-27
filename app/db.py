@@ -1,9 +1,13 @@
+## @file Implementation for db.
+##
 import os
 import sqlite3
 from datetime import datetime
 from typing import Optional
 
 
+## @brief Documents init_db.
+##
 def init_db(path: str) -> None:
     # tables + index, only if they aren't there already
     dir_path = os.path.dirname(path)
@@ -35,6 +39,8 @@ def init_db(path: str) -> None:
         conn.close()
 
 
+## @brief Documents insert_price.
+##
 def insert_price(
     conn: sqlite3.Connection,
     code: str,
@@ -50,6 +56,8 @@ def insert_price(
     conn.commit()
 
 
+## @brief Documents query_prices.
+##
 def query_prices(
     conn: sqlite3.Connection,
     code: str,
@@ -65,6 +73,8 @@ def query_prices(
     return [dict(row) for row in cursor.fetchall()]
 
 
+## @brief Documents count_prices.
+##
 def count_prices(conn: sqlite3.Connection, code: str, since: datetime) -> int:
     since_str = since.strftime("%Y-%m-%dT%H:%M:%SZ")
     cursor = conn.execute(
@@ -75,6 +85,8 @@ def count_prices(conn: sqlite3.Connection, code: str, since: datetime) -> int:
     return row["cnt"] if row else 0
 
 
+## @brief Documents get_recent_change_timestamps.
+##
 def get_recent_change_timestamps(
     conn: sqlite3.Connection, code: str, n: int = 10
 ) -> list[str]:
@@ -102,6 +114,8 @@ def get_recent_change_timestamps(
     return change_times
 
 
+## @brief Documents get_setting.
+##
 def get_setting(conn: sqlite3.Connection, code: str, key: str) -> Optional[str]:
     cursor = conn.execute(
         "SELECT value FROM settings WHERE code = ? AND key = ?",
@@ -111,6 +125,8 @@ def get_setting(conn: sqlite3.Connection, code: str, key: str) -> Optional[str]:
     return row["value"] if row else None
 
 
+## @brief Documents set_setting.
+##
 def set_setting(conn: sqlite3.Connection, code: str, key: str, value: str) -> None:
     conn.execute(
         "INSERT INTO settings (code, key, value) VALUES (?, ?, ?) "

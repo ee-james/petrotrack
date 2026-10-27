@@ -1,3 +1,5 @@
+## @file Implementation for client.
+##
 import os
 import httpx
 from datetime import datetime, timezone
@@ -5,7 +7,11 @@ from datetime import datetime, timezone
 BASE_URL = "https://api.oilpriceapi.com/v1"
 
 
+## @brief Documents OilPriceClient.
+##
 class OilPriceClient:
+    ## @brief Documents __init__.
+    ##
     def __init__(self):
         api_key = os.getenv("OIL_PRICE_API")
         if not api_key:
@@ -15,6 +21,8 @@ class OilPriceClient:
             "Content-Type": "application/json",
         }
 
+    ## @brief Documents fetch_commodities.
+    ##
     async def fetch_commodities(self) -> list[str]:
         # the full catalog of codes the api knows about, plan or no plan
         url = f"{BASE_URL}/commodities"
@@ -27,6 +35,8 @@ class OilPriceClient:
             return [item["code"] for item in raw if isinstance(item, dict) and item.get("code")]
         return []
 
+    ## @brief Documents check_plan_availability.
+    ##
     async def check_plan_availability(self, codes: list[str]) -> list[str]:
         # which of these codes actually return data on the current plan.
         # api caps a request at 20 codes, so walk it in chunks. sequential
@@ -54,6 +64,8 @@ class OilPriceClient:
 
         return available
 
+    ## @brief Documents fetch_historical.
+    ##
     async def fetch_historical(self, code: str, start_at: str, end_at: str) -> list[dict]:
         # historical prices for one code, oldest first, same dict shape as fetch_price
         url = f"{BASE_URL}/prices/historical?by_code={code}&start_at={start_at}&end_at={end_at}"
@@ -78,6 +90,8 @@ class OilPriceClient:
             if isinstance(item, dict) and item.get("price") is not None
         ]
 
+    ## @brief Documents fetch_prices.
+    ##
     async def fetch_prices(
         self,
         codes: list[str],
@@ -149,6 +163,8 @@ class OilPriceClient:
 
         return results, newly_solo
 
+    ## @brief Documents _fetch_chunk.
+    ##
     async def _fetch_chunk(self, codes: list[str], label: str) -> dict[str, dict]:
         # fetch one batch, return {code: normalized dict} for whatever came back
         url = f"{BASE_URL}/prices/latest?by_code={','.join(codes)}"
@@ -181,6 +197,8 @@ class OilPriceClient:
                 }
         return out
 
+    ## @brief Documents fetch_price.
+    ##
     async def fetch_price(self, code: str) -> dict:
         results, _ = await self.fetch_prices([code])
         if not results:
@@ -188,6 +206,8 @@ class OilPriceClient:
         return results[0]
 
 
+## @brief Documents _normalize_timestamp.
+##
 def _normalize_timestamp(ts: str | None) -> str:
     # pin an api timestamp to iso-8601 utc. if it's missing or junk, use now.
     if not ts:
@@ -199,5 +219,7 @@ def _normalize_timestamp(ts: str | None) -> str:
         return _now_utc()
 
 
+## @brief Documents _now_utc.
+##
 def _now_utc() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
